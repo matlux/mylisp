@@ -9,15 +9,6 @@
 
 (declare add-bindings lisp-eval)
 
-#_
-(defn resolve-symbol
-  [ctx name]
-  (if-let [curr (first ctx)]
-    (if (contains? curr name)
-      (get curr name)
-      (recur (rest ctx) name))
-    (throw (ex-info (str "No bindings for symbol: " name)))))
-
 (defn resolve-symbol
   [ctx name]
   (or (peek (get ctx name))
