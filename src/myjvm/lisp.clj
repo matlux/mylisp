@@ -1,9 +1,7 @@
 (ns myjvm.lisp
   (:require
    [clojure.test :refer :all]
-   [clojure.java.io :as jio])
-  (:import
-   [java.io InputStream]))
+   [clojure.java.io :as jio]))
 
 ;; CORE TYPES
 
@@ -130,68 +128,3 @@
 
 
 
-;;===========================
-
-(defmacro update!
-  [what f & args]
-  (list 'set! what (apply list f what args)))
-
-(defprotocol Reader
-  (read-char [reader]))
-
-(deftype StringReader
-    [^String s s-len ^:unsynchronized-mutable s-pos]
-  Reader
-  (read-char [reader]
-    (when (> s-len s-pos)
-      (let [ch (nth s s-pos)]
-        (update! s-pos inc)
-        ch))))
-
-(deftype InputStreamReader
-    [^InputStream is]
-  Reader
-  (read-char [reader]
-    (let [ch (.read is)]
-      (when (>= ch 0)
-        (char ch)))))
-
-(defn string-reader
-  [s]
-  (->StringReader s (count s) 0))
-
-(defn input-stream-reader
-  [is]
-  (->InputStreamReader is))
-
-;;=========================
-
-(defn whitespace?
-  [^Character ch]
-  (or (Character/isWhitespace ch)
-      (identical? \, ch)))
-
-(defn parse-next-form
-  [chars]
-  ())
-
-(defn read-form
-  [rdr]
-  (when-let [ch (read-char rdr)]))
-
-(defn read-seq
-  [rdr]
-  (lazy-seq
-   (when-let [form (read-form rdr)]
-     (cons form (read-seq rdr)))))
-
-(deftest test-read-seq
-  (testing "parses integer literal"
-    (are [input values] (= (for [v values] {:type :int :value v})
-                           (read-seq (string-reader input)))
-         "13" [13]
-         "-1" [-1]
-         "-0" [0]
-         "2147483647" [Integer/MAX_VALUE]
-         "-2147483648" [Integer/MIN_VALUE]
-         "1 2 3" [1 2 3])))
