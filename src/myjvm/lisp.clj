@@ -52,8 +52,6 @@
 
 (defn lisp-eval
   [ctx form]
-  (println "CONTEXT:" ctx)
-  (println "FORM:" form)
   (case (:type form)
     :symbol
     (resolve-symbol ctx (:name form))
