@@ -1,4 +1,4 @@
-(ns myjvm.lisp
+(ns mylisp.ast
   (:require
    [clojure.test :refer :all]
    [clojure.java.io :as jio]))

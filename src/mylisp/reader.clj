@@ -1,4 +1,4 @@
-(ns myjvm.reader
+(ns mylisp.reader
   (:import
    [java.io InputStream]))
 
