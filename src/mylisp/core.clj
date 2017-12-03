@@ -61,12 +61,12 @@
                 (let [{:keys [:name :arglist :body]}
                       (s/conform ::specs/lambda params)
                       arglist (:symbols arglist)
-                      body (s/unform ::specs/form body)]
+                      body (map #(s/unform ::specs/form %) body)]
                   {::specs/bindings ctx
                    ::specs/arglist arglist
-                   ::specs/form body}) 
+                   ::specs/form (cons :do body)})
+                :do (last (for [param params] (eval ctx param)))
                 :if "THIS IS AN IF STATEMENT"
-                :do "THIS IS A DO STATEMENT"
                 :. "THIS IS AN INTEROP STATEMENT"
                 :+
                 (let [params (map #(eval ctx %) params)]

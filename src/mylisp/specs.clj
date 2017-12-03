@@ -37,5 +37,5 @@
   (s/cat
     :name (s/? ::symbol)
     :arglist (s/spec (s/cat :symbols (s/* ::symbol)))
-    :body ::form))
+    :body (s/* ::form)))
 
