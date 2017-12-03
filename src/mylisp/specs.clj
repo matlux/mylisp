@@ -33,7 +33,7 @@
 (s/def ::special-form
   #{:def :quote :lambda :apply :let :if :do :+ :*})
 
-(s/def ::lambda
+(s/def ::lambda-expr
   (s/cat
     :name (s/? ::symbol)
     :arglist (s/spec (s/cat :symbols (s/* ::symbol)))

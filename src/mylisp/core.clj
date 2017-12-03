@@ -59,7 +59,7 @@
                     (error-args param-count)))
                 :lambda
                 (let [{:keys [:name :arglist :body]}
-                      (s/conform ::specs/lambda params)
+                      (s/conform ::specs/lambda-expr params)
                       arglist (:symbols arglist)
                       body (map #(s/unform ::specs/form %) body)]
                   {::specs/bindings ctx
