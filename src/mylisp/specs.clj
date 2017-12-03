@@ -39,3 +39,8 @@
     :arglist (s/spec (s/cat :symbols (s/* ::symbol)))
     :body (s/* ::form)))
 
+(s/def ::if-expr
+  (s/cat
+    :check ::form
+    :then ::form
+    :else ::form))

@@ -66,7 +66,21 @@
                    ::specs/arglist arglist
                    ::specs/form (cons :do body)})
                 :do (last (for [param params] (eval ctx param)))
-                :if "THIS IS AN IF STATEMENT"
+                :if
+                (let [{:keys [:check :then :else]}
+                      (s/conform ::specs/if-expr params)
+                      check (eval ctx (s/unform ::specs/form check))
+                      [check-type check-content] (s/conform ::specs/form check)]
+                  (case check-type
+                    :integer
+                    (if (zero? check-content)
+                      (eval ctx (s/unform ::specs/form else))
+                      (eval ctx (s/unform ::specs/form then)))
+                    :list
+                    (let [[list-type list-content] check-content]
+                      (case list-type
+                        :nil (eval ctx (s/unform ::specs/form else))
+                        :cons (eval ctx (s/unform ::specs/form then))))))
                 :. "THIS IS AN INTEROP STATEMENT"
                 :+
                 (let [params (map #(eval ctx %) params)]
