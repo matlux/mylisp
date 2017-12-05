@@ -82,6 +82,39 @@
                         :nil (eval ctx (s/unform ::specs/form else))
                         :cons (eval ctx (s/unform ::specs/form then))))))
                 :. "THIS IS AN INTEROP STATEMENT"
+                :cons
+                (let [params (map #(eval ctx %) params)
+                      {:keys [head tail]}
+                      (s/conform (s/cat :head ::specs/form :tail ::specs/form) params)
+                      head (s/unform ::specs/form head)
+                      head (eval ctx head)
+                      tail (s/unform ::specs/form tail)
+                      tail (map #(eval ctx %) tail)]
+                  (cons head tail))
+                :car
+                (if (= 1 (count params))
+                  (let [param (eval ctx (first params))
+                        [param-type param-content] (s/conform ::specs/form param)]
+                    (case param-type
+                      :list
+                      (let [[list-type list-content] param-content]
+                        (case list-type
+                          :nil nil
+                          :cons
+                          (let [{:keys [head tail]} list-content]
+                            (s/unform ::specs/form head)))))))
+                :cdr
+                (if (= 1 (count params))
+                  (let [param (eval ctx (first params))
+                        [param-type param-content] (s/conform ::specs/form param)]
+                    (case param-type
+                      :list
+                      (let [[list-type list-content] param-content]
+                        (case list-type
+                          :nil nil
+                          :cons
+                          (let [{:keys [head tail]} list-content]
+                            (map #(s/unform ::specs/form %) tail)))))))
                 :+
                 (let [params (map #(eval ctx %) params)]
                   (clojure.core/apply + params))

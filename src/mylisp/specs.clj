@@ -31,7 +31,7 @@
     :list ::list))
 
 (s/def ::special-form
-  #{:def :quote :lambda :apply :let :if :do :+ :*})
+  #{:def :quote :lambda :if :do :+ :* :cons :car :cdr})
 
 (s/def ::lambda-expr
   (s/cat
