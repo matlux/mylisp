@@ -7,6 +7,7 @@
 
 (s/def ::symbol keyword?)
 (s/def ::integer integer?)
+(s/def ::macro? boolean?)
 
 (s/def ::bindings
   (s/* (s/map-of ::symbol ::form)))
@@ -16,7 +17,9 @@
 ;(s/def ::fn-body (s/+ ::form))
 
 (s/def ::closure
-  (s/keys :req [::bindings ::arglist ::form]))
+  (s/keys
+    :req [::bindings ::arglist ::form]
+    :opt [::macro?]))
 
 (s/def ::list
   (s/or
@@ -31,13 +34,15 @@
     :list ::list))
 
 (s/def ::special-form
-  #{:def :quote :lambda :if :do :+ :* :cons :car :cdr})
+  #{:def :quote :lambda :macro :if :do :+ :* :cons :car :cdr})
 
 (s/def ::lambda-expr
   (s/cat
     :name (s/? ::symbol)
     :arglist (s/spec (s/cat :symbols (s/* ::symbol)))
     :body (s/* ::form)))
+
+(s/def ::macro-expr ::lambda-expr)
 
 (s/def ::if-expr
   (s/cat

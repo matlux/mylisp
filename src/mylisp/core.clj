@@ -65,6 +65,10 @@
                   {::specs/bindings ctx
                    ::specs/arglist arglist
                    ::specs/form (cons :do body)})
+                :macro
+                (let [macro-expr (eval ctx (cons :lambda params))
+                      macro-expr (assoc macro-expr ::specs/macro? true)]
+                  (eval ctx macro-expr))
                 :do (last (for [param params] (eval ctx param)))
                 :if
                 (let [{:keys [:check :then :else]}
@@ -122,9 +126,13 @@
                 (let [params (map #(eval ctx %) params)]
                   (clojure.core/apply * params)))
               :closure
-              (let [{:keys [::specs/bindings ::specs/arglist ::specs/form]}
+              (let [{:keys [::specs/bindings ::specs/arglist ::specs/form ::specs/macro?]}
                     (s/unform ::specs/closure head-content)]
                 (if (= (count arglist) (count params))
-                  (let [arg-ctx (zipmap arglist params)]
-                    (eval (cons arg-ctx bindings) form)))))))))))
+                  (if macro?
+                    (let [arg-ctx (zipmap arglist params)]
+                      (eval (cons arg-ctx bindings) form))
+                    (let [params (map #(eval ctx %) params)
+                          arg-ctx (zipmap arglist params)]
+                      (eval (cons arg-ctx bindings) form))))))))))))
 
