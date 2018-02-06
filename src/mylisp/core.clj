@@ -52,12 +52,12 @@
             (case head-type
               :symbol
               (case head-content
-                :quote
+                quote
                 (let [param-count (count params)]
                   (if (= 1 param-count)
                     (first params)
                     (error-args param-count)))
-                :lambda
+                lambda
                 (let [{:keys [:name :arglist :body]}
                       (s/conform ::specs/lambda-expr params)
                       arglist (:symbols arglist)
@@ -65,12 +65,12 @@
                   {::specs/bindings ctx
                    ::specs/arglist arglist
                    ::specs/form (cons :do body)})
-                :macro
+                macro
                 (let [macro-expr (eval ctx (cons :lambda params))
                       macro-expr (assoc macro-expr ::specs/macro? true)]
                   (eval ctx macro-expr))
-                :do (last (for [param params] (eval ctx param)))
-                :if
+                do (last (for [param params] (eval ctx param)))
+                if
                 (let [{:keys [:check :then :else]}
                       (s/conform ::specs/if-expr params)
                       check (eval ctx (s/unform ::specs/form check))
@@ -86,7 +86,7 @@
                         :nil (eval ctx (s/unform ::specs/form else))
                         :cons (eval ctx (s/unform ::specs/form then))))))
                 :. "THIS IS AN INTEROP STATEMENT"
-                :cons
+                cons
                 (let [params (map #(eval ctx %) params)
                       {:keys [head tail]}
                       (s/conform (s/cat :head ::specs/form :tail ::specs/form) params)
@@ -95,7 +95,7 @@
                       tail (s/unform ::specs/form tail)
                       tail (map #(eval ctx %) tail)]
                   (cons head tail))
-                :car
+                car
                 (if (= 1 (count params))
                   (let [param (eval ctx (first params))
                         [param-type param-content] (s/conform ::specs/form param)]
@@ -107,7 +107,7 @@
                           :cons
                           (let [{:keys [head tail]} list-content]
                             (s/unform ::specs/form head)))))))
-                :cdr
+                cdr
                 (if (= 1 (count params))
                   (let [param (eval ctx (first params))
                         [param-type param-content] (s/conform ::specs/form param)]
@@ -119,10 +119,10 @@
                           :cons
                           (let [{:keys [head tail]} list-content]
                             (map #(s/unform ::specs/form %) tail)))))))
-                :+
+                +
                 (let [params (map #(eval ctx %) params)]
                   (clojure.core/apply + params))
-                :*
+                *
                 (let [params (map #(eval ctx %) params)]
                   (clojure.core/apply * params)))
               :closure

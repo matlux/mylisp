@@ -5,7 +5,7 @@
    [clojure.spec.alpha :as s]))
 
 
-(s/def ::symbol keyword?)
+(s/def ::symbol symbol?)
 (s/def ::integer integer?)
 (s/def ::macro? boolean?)
 
@@ -34,7 +34,7 @@
     :list ::list))
 
 (s/def ::special-form
-  #{:def :quote :lambda :macro :if :do :+ :* :cons :car :cdr})
+  (set '[def quote lambda macro if do + * cons car cdr]))
 
 (s/def ::lambda-expr
   (s/cat
