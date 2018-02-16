@@ -1,9 +1,11 @@
 (ns mylisp.core
-  (:refer-clojure :exclude [read print eval resolve])
+  (:refer-clojure :exclude [read eval resolve])
   (:require
    [clojure.spec.alpha :as s]
    [clojure.edn :as edn]
-   [mylisp.specs :as specs]))
+   [clojure.pprint :refer [pprint]]
+   [mylisp.specs :as specs])
+  (:gen-class))
 
 (s/fdef ::read
   :args (s/cat :args string?)
@@ -18,7 +20,10 @@
   :ret ::specs/form)
 
 (defn read [s]
-  (edn/read-string s))
+  (try
+    (edn/read-string s)
+    (catch Exception ex
+      (println (.getMessage ex)))))
 
 (defn resolve [ctx sym]
   (if (seq ctx)
@@ -135,4 +140,12 @@
                     (let [params (map #(eval ctx %) params)
                           arg-ctx (zipmap arglist params)]
                       (eval (cons arg-ctx bindings) form))))))))))))
+
+(defn -main [& args]
+  (println "Type your expression to be evaluated:")
+  (loop [ctx [] line (read-line)]
+    (if-let [expr (read-string line)]
+      (let [[ctx res] (eval ctx expr)]
+        (pprint res)
+        (recur ctx (read-line))))))
 
