@@ -63,13 +63,13 @@
                     (first params)
                     (error-args param-count)))
                 lambda
-                (let [{:keys [:name :arglist :body]}
+                (let [{:keys [:arglist :body]}
                       (s/conform ::specs/lambda-expr params)
                       arglist (:symbols arglist)
-                      body (map #(s/unform ::specs/form %) body)]
+                      body (map (partial s/unform ::specs/form) body)]
                   {::specs/bindings ctx
                    ::specs/arglist arglist
-                   ::specs/form (cons :do body)})
+                   ::specs/form body})
                 macro
                 (let [macro-expr (eval ctx (cons :lambda params))
                       macro-expr (assoc macro-expr ::specs/macro? true)]
@@ -131,15 +131,21 @@
                 (let [params (map #(eval ctx %) params)]
                   (clojure.core/apply * params)))
               :closure
-              (let [{:keys [::specs/bindings ::specs/arglist ::specs/form ::specs/macro?]}
+              (let [{:keys
+                     [::specs/bindings
+                      ::specs/arglist
+                      ::specs/form
+                      ::specs/macro?]}
                     (s/unform ::specs/closure head-content)]
                 (if (= (count arglist) (count params))
                   (if macro?
-                    (let [arg-ctx (zipmap arglist params)]
-                      (eval (cons arg-ctx bindings) form))
-                    (let [params (map #(eval ctx %) params)
-                          arg-ctx (zipmap arglist params)]
-                      (eval (cons arg-ctx bindings) form))))))))))))
+                    (let [arg-ctx (zipmap arglist params)
+                          ctx (cons arg-ctx bindings)]
+                      (eval ctx form))
+                    (let [params (map (partial eval ctx) params)
+                          arg-ctx (zipmap arglist params)
+                          ctx (cons arg-ctx bindings)]
+                      (eval ctx form))))))))))))
 
 (defn -main [& args]
   (println "Type your expression to be evaluated:")

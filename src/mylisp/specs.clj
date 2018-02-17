@@ -38,9 +38,8 @@
 
 (s/def ::lambda-expr
   (s/cat
-    :name (s/? ::symbol)
-    :arglist (s/spec (s/cat :symbols (s/* ::symbol)))
-    :body (s/* ::form)))
+    :arglist (s/cat :symbols (s/* ::symbol))
+    :body ::form))
 
 (s/def ::macro-expr ::lambda-expr)
 
