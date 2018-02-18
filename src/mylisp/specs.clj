@@ -34,7 +34,7 @@
     :list ::list))
 
 (s/def ::special-form
-  (set '[def quote lambda macro if do + * cons car cdr]))
+  (set '[def quote lambda macro if do . + * cons car cdr]))
 
 (s/def ::lambda-expr
   (s/cat

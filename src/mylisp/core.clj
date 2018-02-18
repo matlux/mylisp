@@ -89,7 +89,7 @@
                       (case list-type
                         :nil (eval-expr ctx (s/unform ::specs/form else))
                         :cons (eval-expr ctx (s/unform ::specs/form then))))))
-                :. "THIS IS AN INTEROP STATEMENT"
+                . (println "THIS IS AN INTEROP STATEMENT!!!")
                 cons
                 (let [params (map (partial eval-expr ctx) params)
                       {:keys [head tail]}
