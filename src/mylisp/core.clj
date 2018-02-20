@@ -90,39 +90,6 @@
                         :nil (eval-expr ctx (s/unform ::specs/form else))
                         :cons (eval-expr ctx (s/unform ::specs/form then))))))
                 . (println "THIS IS AN INTEROP STATEMENT!!!")
-                cons
-                (let [params (map (partial eval-expr ctx) params)
-                      {:keys [head tail]}
-                      (s/conform (s/cat :head ::specs/form :tail ::specs/form) params)
-                      head (s/unform ::specs/form head)
-                      head (eval-expr ctx head)
-                      tail (s/unform ::specs/form tail)
-                      tail (map (partial eval-expr ctx) tail)]
-                  (cons head tail))
-                car
-                (if (= 1 (count params))
-                  (let [param (eval-expr ctx (first params))
-                        [param-type param-content] (s/conform ::specs/form param)]
-                    (case param-type
-                      :list
-                      (let [[list-type list-content] param-content]
-                        (case list-type
-                          :nil nil
-                          :cons
-                          (let [{:keys [head tail]} list-content]
-                            (s/unform ::specs/form head)))))))
-                cdr
-                (if (= 1 (count params))
-                  (let [param (eval-expr ctx (first params))
-                        [param-type param-content] (s/conform ::specs/form param)]
-                    (case param-type
-                      :list
-                      (let [[list-type list-content] param-content]
-                        (case list-type
-                          :nil nil
-                          :cons
-                          (let [{:keys [head tail]} list-content]
-                            (map (partial s/unform ::specs/form) tail)))))))
                 +
                 (let [params (map (partial eval-expr ctx) params)]
                   (clojure.core/apply + params))
@@ -145,6 +112,43 @@
                           arg-ctx (zipmap arglist params)
                           ctx (cons arg-ctx bindings)]
                       (eval-expr ctx form))))))))))))
+
+(comment
+  ;; necessary special forms
+  ;; somehow causes errors with #dbg
+  cons
+  (let [params (map (partial eval-expr ctx) params)
+        {:keys [head tail]}
+        (s/conform (s/cat :head ::specs/form :tail ::specs/form) params)
+        head (s/unform ::specs/form head)
+        head (eval-expr ctx head)
+        tail (s/unform ::specs/form tail)
+        tail (map (partial eval-expr ctx) tail)]
+    (cons head tail))
+  car
+  (if (= 1 (count params))
+    (let [param (eval-expr ctx (first params))
+          [param-type param-content] (s/conform ::specs/form param)]
+      (case param-type
+        :list
+        (let [[list-type list-content] param-content]
+          (case list-type
+            :nil nil
+            :cons
+            (let [{:keys [head tail]} list-content]
+              (s/unform ::specs/form head)))))))
+  cdr
+  (if (= 1 (count params))
+    (let [param (eval-expr ctx (first params))
+          [param-type param-content] (s/conform ::specs/form param)]
+      (case param-type
+        :list
+        (let [[list-type list-content] param-content]
+          (case list-type
+            :nil nil
+            :cons
+            (let [{:keys [head tail]} list-content]
+              (map (partial s/unform ::specs/form) tail))))))))
 
 (defn -main [& args]
   (println "Type your expression to be evaluated:")
