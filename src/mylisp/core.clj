@@ -16,7 +16,7 @@
 
 (s/fdef ::eval-expr
   :args (s/cat :ctx ::specs/bindings :form ::specs/form)
-  :ret ::specs/form)
+  :ret (s/cat :ctx ::specs/bindings :form ::specs/form))
 
 (defn read-expr [s]
   (try
@@ -33,69 +33,86 @@
 (defn error-args [n]
   (throw (ex-info (str "Wrong number of arguments (" n ")"))))
 
+(declare eval-expr)
+
+(defn eval-params [ctx params]
+  (reduce
+    (fn [[ctx old-res] param]
+      (let [[ctx new-res] (eval-expr ctx param)]
+        [ctx (conj old-res new-res)]))
+    [ctx []] params))
+
 (defn eval-expr [ctx form]
   (if-let [[form-type form-content] (s/conform ::specs/form form)]
     (case form-type
-      :integer form-content
+      :integer [ctx form-content]
+      :closure [ctx form-content]
       :symbol
       (if (s/valid? ::specs/special-form form-content)
-        form-content
-        (resolve-symbol ctx form-content))
-      :closure form-content
+        [ctx form-content]
+        (let [res (resolve-symbol ctx form-content)]
+          [ctx res]))
       :list
       (let [[list-type list-content] form-content]
         (case list-type
-          :nil nil
+          :nil [ctx nil]
           :cons
           (let [{:keys [head tail]} list-content
                 [head-type head-content] head
                 head (s/unform ::specs/form head)
-                head (eval-expr ctx head)
+                [ctx head] (eval-expr ctx head)
                 [head-type head-content] (s/conform ::specs/form head)
                 params (map (partial s/unform ::specs/form) tail)]
             (case head-type
               :symbol
               (case head-content
                 quote
-                (let [param-count (count params)]
-                  (if (= 1 param-count)
-                    (first params)
-                    (error-args param-count)))
+                (if (= 1 (count params))
+                  [ctx (first params)]
+                  (error-args params))
                 lambda
                 (let [{:keys [:arglist :body]}
                       (s/conform ::specs/lambda-expr params)
                       arglist (:symbols arglist)
-                      body (map (partial s/unform ::specs/form) body)]
-                  {::specs/bindings ctx
-                   ::specs/arglist arglist
-                   ::specs/form body})
+                      body (s/unform ::specs/form body)]
+                  [ctx
+                   {::specs/bindings ctx
+                    ::specs/arglist arglist
+                    ::specs/form body}])
                 macro
-                (let [macro-expr (eval-expr ctx (cons :lambda params))
+                (let [[ctx macro-expr] (eval-expr ctx (cons :lambda params))
                       macro-expr (assoc macro-expr ::specs/macro? true)]
                   (eval-expr ctx macro-expr))
-                do (last (for [param params] (eval-expr ctx param)))
+                do
+                (reduce
+                  (fn [[ctx res] param] (eval-expr ctx param))
+                  [ctx nil] params)
                 if
                 (let [{:keys [:check :then :else]}
                       (s/conform ::specs/if-expr params)
-                      check (eval-expr ctx (s/unform ::specs/form check))
-                      [check-type check-content] (s/conform ::specs/form check)]
-                  (case check-type
-                    :integer
-                    (if (zero? check-content)
-                      (eval-expr ctx (s/unform ::specs/form else))
-                      (eval-expr ctx (s/unform ::specs/form then)))
-                    :list
-                    (let [[list-type list-content] check-content]
-                      (case list-type
-                        :nil (eval-expr ctx (s/unform ::specs/form else))
-                        :cons (eval-expr ctx (s/unform ::specs/form then))))))
+                      check-form (s/unform ::specs/form check)
+                      then-form (s/unform ::specs/form then)
+                      else-form (s/unform ::specs/form else)
+                      [ctx check-res] (eval-expr ctx check-form)]
+                  (if check-res
+                    (eval-expr ctx else-form)
+                    (eval-expr ctx then-form)))
                 . (println "THIS IS AN INTEROP STATEMENT!!!")
+                def
+                (if (= 2 (count params))
+                  (let [[sym expr] params
+                        [new-ctx val] (eval-expr ctx expr)
+                        new-ctx (cons {sym val} new-ctx)]
+                    [new-ctx sym])
+                  (error-args params))
                 +
-                (let [params (map (partial eval-expr ctx) params)]
-                  (clojure.core/apply + params))
+                (let [[ctx params] (eval-params ctx params)
+                      res (clojure.core/apply + params)]
+                  [ctx res])
                 *
-                (let [params (map #(eval-expr ctx %) params)]
-                  (clojure.core/apply * params)))
+                (let [[ctx params] (eval-params ctx params)
+                      res (clojure.core/apply * params)]
+                  [ctx res]))
               :closure
               (let [{:keys
                      [::specs/bindings
@@ -108,10 +125,13 @@
                     (let [arg-ctx (zipmap arglist params)
                           ctx (cons arg-ctx bindings)]
                       (eval-expr ctx form))
-                    (let [params (map (partial eval-expr ctx) params)
+                    (let [[ctx params] (eval-params ctx params)
                           arg-ctx (zipmap arglist params)
-                          ctx (cons arg-ctx bindings)]
-                      (eval-expr ctx form))))))))))))
+                          ctx (cons arg-ctx bindings)
+                          [ctx res] (eval-expr ctx form)
+                          ctx (seq (rest ctx))]
+                      [ctx res]))
+                  (error-args params))))))))))
 
 (comment
   ;; necessary special forms
@@ -136,7 +156,8 @@
             :nil nil
             :cons
             (let [{:keys [head tail]} list-content]
-              (s/unform ::specs/form head)))))))
+              (s/unform ::specs/form head))))))
+    (error-args params))
   cdr
   (if (= 1 (count params))
     (let [param (eval-expr ctx (first params))
@@ -148,7 +169,8 @@
             :nil nil
             :cons
             (let [{:keys [head tail]} list-content]
-              (map (partial s/unform ::specs/form) tail))))))))
+              (map (partial s/unform ::specs/form) tail))))))
+    (error-args params)))
 
 (defn -main [& args]
   (println "Type your expression to be evaluated:")
