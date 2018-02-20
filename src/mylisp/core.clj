@@ -73,7 +73,6 @@
                 lambda
                 (let [{:keys [:arglist :body]}
                       (s/conform ::specs/lambda-expr params)
-                      arglist (:symbols arglist)
                       body (s/unform ::specs/form body)]
                   [ctx
                    {::specs/bindings ctx
