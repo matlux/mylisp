@@ -42,8 +42,15 @@
         [ctx (conj old-res new-res)]))
     [ctx []] params))
 
+(defn conform [spec form]
+  (if (s/valid? spec form)
+    (s/conform spec form)
+    (throw
+      (ex-info "Invalid form!"
+        (s/explain-data spec form)))))
+
 (defn eval-expr [ctx form]
-  (if-let [[form-type form-content] (s/conform ::specs/form form)]
+  (if-let [[form-type form-content] (conform ::specs/form form)]
     (case form-type
       :integer [ctx form-content]
       :closure [ctx form-content]
@@ -61,7 +68,7 @@
                 [head-type head-content] head
                 head (s/unform ::specs/form head)
                 [ctx head] (eval-expr ctx head)
-                [head-type head-content] (s/conform ::specs/form head)
+                [head-type head-content] (conform ::specs/form head)
                 params (map (partial s/unform ::specs/form) tail)]
             (case head-type
               :symbol
@@ -72,7 +79,7 @@
                   (error-args params))
                 lambda
                 (let [{:keys [:arglist :body]}
-                      (s/conform ::specs/lambda-expr params)
+                      (conform ::specs/lambda-expr params)
                       body (s/unform ::specs/form body)]
                   [ctx
                    {::specs/bindings ctx
@@ -88,7 +95,7 @@
                   [ctx nil] params)
                 if
                 (let [{:keys [:check :then :else]}
-                      (s/conform ::specs/if-expr params)
+                      (conform ::specs/if-expr params)
                       check-form (s/unform ::specs/form check)
                       then-form (s/unform ::specs/form then)
                       else-form (s/unform ::specs/form else)
@@ -138,7 +145,7 @@
   cons
   (let [params (map (partial eval-expr ctx) params)
         {:keys [head tail]}
-        (s/conform (s/cat :head ::specs/form :tail ::specs/form) params)
+        (conform (s/cat :head ::specs/form :tail ::specs/form) params)
         head (s/unform ::specs/form head)
         head (eval-expr ctx head)
         tail (s/unform ::specs/form tail)
@@ -147,7 +154,7 @@
   car
   (if (= 1 (count params))
     (let [param (eval-expr ctx (first params))
-          [param-type param-content] (s/conform ::specs/form param)]
+          [param-type param-content] (conform ::specs/form param)]
       (case param-type
         :list
         (let [[list-type list-content] param-content]
@@ -160,7 +167,7 @@
   cdr
   (if (= 1 (count params))
     (let [param (eval-expr ctx (first params))
-          [param-type param-content] (s/conform ::specs/form param)]
+          [param-type param-content] (conform ::specs/form param)]
       (case param-type
         :list
         (let [[list-type list-content] param-content]
