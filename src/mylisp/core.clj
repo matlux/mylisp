@@ -179,9 +179,10 @@
     (error-args params)))
 
 (defn -main [& args]
-  (println "Type your expression to be evaluated:")
-  (loop [ctx [] line (read-line)]
+  (println "REPL is ready! Type an expression to be evaluated:")
+  (loop [ctx nil line (read-line)]
     (if-let [expr (read-expr line)]
       (let [[ctx res] (eval-expr ctx expr)]
         (pprint res)
+        (println "Type another expression:")
         (recur ctx (read-line))))))
