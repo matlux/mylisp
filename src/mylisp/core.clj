@@ -133,10 +133,10 @@
                       (eval-expr ctx form))
                     (let [[ctx params] (eval-params ctx params)
                           arg-ctx (zipmap arglist params)
-                          ctx (cons arg-ctx bindings)
-                          [ctx res] (eval-expr ctx form)
-                          ctx (seq (rest ctx))]
-                      [ctx res]))
+                          closure-ctx (cons arg-ctx bindings)
+                          [result-ctx res] (eval-expr closure-ctx form)
+                          result-ctx (rest (rest result-ctx))]
+                      [(seq result-ctx) res]))
                   (error-args params))))))))))
 
 (comment
