@@ -73,6 +73,7 @@
             (case head-type
               :symbol
               (case head-content
+                . (println "THIS IS AN INTEROP STATEMENT!!!")
                 quote
                 (if (= 1 (count params))
                   [ctx (first params)]
@@ -103,7 +104,6 @@
                   (if check-res
                     (eval-expr ctx else-form)
                     (eval-expr ctx then-form)))
-                . (println "THIS IS AN INTEROP STATEMENT!!!")
                 def
                 (if (= 2 (count params))
                   (let [[sym expr] params
