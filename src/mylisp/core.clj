@@ -87,7 +87,7 @@
                     ::specs/arglist arglist
                     ::specs/form form}])
                 'macro
-                (let [[ctx macro-expr] (eval-expr ctx (cons :lambda params))
+                (let [[ctx macro-expr] (eval-expr ctx (cons 'lambda params))
                       macro-expr (assoc macro-expr ::specs/macro? true)]
                   (eval-expr ctx macro-expr))
                 'do
