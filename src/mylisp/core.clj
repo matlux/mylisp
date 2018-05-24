@@ -79,13 +79,13 @@
                   [ctx (first params)]
                   (error-args params))
                 'lambda
-                (let [{:keys [:arglist :body]}
+                (let [{:keys [arglist body]}
                       (conform ::specs/lambda-expr params)
-                      body (s/unform ::specs/form body)]
+                      form (s/unform ::specs/form body)]
                   [ctx
                    {::specs/bindings ctx
                     ::specs/arglist arglist
-                    ::specs/form body}])
+                    ::specs/form form}])
                 'macro
                 (let [[ctx macro-expr] (eval-expr ctx (cons :lambda params))
                       macro-expr (assoc macro-expr ::specs/macro? true)]
