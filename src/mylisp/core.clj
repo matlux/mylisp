@@ -134,9 +134,8 @@
                     (let [[ctx params] (eval-params ctx params)
                           arg-ctx (zipmap arglist params)
                           closure-ctx (cons arg-ctx bindings)
-                          [result-ctx res] (eval-expr closure-ctx form)
-                          result-ctx (rest (rest result-ctx))]
-                      [(seq result-ctx) res]))
+                          [result-ctx res] (eval-expr closure-ctx form)]
+                      [ctx res]))
                   (error-args params))))))))))
 
 (comment
