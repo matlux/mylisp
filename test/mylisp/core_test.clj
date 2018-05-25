@@ -1,6 +1,7 @@
 (ns mylisp.core-test
   (:require [mylisp.core :as core]
-            [clojure.test :refer :all]))
+            [clojure.test :refer :all])
+  (:import [clojure.lang ExceptionInfo]))
 
 (comment
   (eval-expr nil '(* (+ 2 3) (+ 1 2 3)))
@@ -8,6 +9,8 @@
   (eval-expr nil '(do (def inc (lambda (x) (+ 1 x))) (inc 4)))
   )
 
+(defmacro unbound-sym [sym]
+  `(re-pattern (str "Unbound symbol: " ~(name sym))))
 
 (deftest test-eval
   (testing "Special forms should work as expected -"
@@ -50,6 +53,20 @@
     (testing "Def statements should return update environment"
       (is (= (core/eval-expr nil '[def x 4])
             '[[{x 4 }] x])))
+    ;; check unbound variable throws error
+    (testing "Referencing undefined variable throws exception"
+      (is (thrown-with-msg? ExceptionInfo (unbound-sym y)
+            (core/eval-expr nil 'y)))
+      (is (thrown-with-msg? ExceptionInfo (unbound-sym y)
+            (core/eval-expr nil '((lambda (x) (+ x y)) 5))))
+      (is (thrown-with-msg? ExceptionInfo (unbound-sym z)
+            (core/eval-expr nil
+              '((((lambda (f) (lambda (y z) (f y)))
+                  ((lambda (x) (lambda (y) (+ x y z))) 1)) 2 3)))))
+      #_
+      (testing "even while creating new closures"
+        (is (thrown-with-msg? ExceptionInfo (unbound-sym z)
+              (core/eval-expr {'x 1} '(lambda (y) (+ x y z)))))))
     (testing "'Do' statements should monadicaly propagate context changes"
       (is (= (core/eval-expr nil '(do (def x 4) (def y 5)))
             '[[{y 5} {x 4}] y]))
