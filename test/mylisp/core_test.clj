@@ -54,4 +54,6 @@
       (is (= (core/eval-expr nil '(do (def x 4) (def y 5)))
             '[[{y 5} {x 4}] y]))
       (is (= (core/eval-expr nil '(do (def inc (lambda (x) (+ 1 x))) (inc 4)))
-            [nil 5])))))
+            (let [[inc-ctx inc-closure] (core/eval-expr nil '(lambda (x) (+ 1 x)))
+                  expected-ctx (list {'inc inc-closure})]
+              [expected-ctx 5]))))))
