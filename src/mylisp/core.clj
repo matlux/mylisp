@@ -37,10 +37,11 @@
 
 (defn eval-params [ctx params]
   (reduce
-    (fn [[ctx old-res] param]
-      (let [[ctx new-res] (eval-expr ctx param)]
-        [ctx (conj old-res new-res)]))
-    [ctx []] params))
+    (fn [[old-ctx acc] param]
+      (let [[new-ctx res] (eval-expr old-ctx param)]
+        [new-ctx (conj acc res)]))
+    [ctx []]
+    params))
 
 (defn conform [spec form]
   (if (s/valid? spec form)
