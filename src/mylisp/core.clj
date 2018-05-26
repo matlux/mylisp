@@ -185,7 +185,25 @@
          [cons [quote lambda]
           [cons arglist
            [cons body nil]]]
-         nil]]]]]])
+         nil]]]]]
+
+    [def cadr
+     [macro
+      [coll]
+      [cons [quote car]
+       [cons
+        [cons [quote cdr]
+         [cons coll nil]]
+        nil]]]]
+
+    [def let
+     [macro
+      [binding body]
+      [cons
+       [cons [quote lambda]
+        [cons [cons [car binding] nil]
+         [cons body nil]]]
+       [cons [cadr binding] nil]]]]])
 
 (defn -main [& args]
   (let [[ctx res] (eval-expr nil (cons 'do init-forms))]
