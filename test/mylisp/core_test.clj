@@ -43,13 +43,12 @@
              [nil 29])))
     (testing ">> quote stops evaluation of expression"
       (is (= [nil '[+ 1 2 3]] (core/eval-expr nil '[quote [+ 1 2 3]]))))
-    #_
-    (testing "List manipulation forms (cons, car, cdr) should be supported"
-      (is (= [1 2 3 4] (core/eval-expr nil '[cons 1 [quote [2 3 4]]])))
-      (is (= 1 (core/eval-expr nil '[car [quote [1 2 3 4]]])))
-      (is (= [2 3 4]) (core/eval-expr nil '[cdr [quote [1 2 3 4]]]))
-      (is (= 1 (core/eval-expr nil '[car [cons 1 [quote [2 3 4]]]])))
-      (is (= [2 3 4] (core/eval-expr nil '[cdr [cons 1 [quote [2 3 4]]]]))))
+    (testing ">> List manipulation forms (cons, car, cdr) should be supported"
+      (is (= [nil [1 2 3 4]] (core/eval-expr nil '[cons 1 [quote [2 3 4]]])))
+      (is (= [nil 1] (core/eval-expr nil '[car [quote [1 2 3 4]]])))
+      (is (= [nil [2 3 4]] (core/eval-expr nil '[cdr [quote [1 2 3 4]]])))
+      (is (= [nil 1] (core/eval-expr nil '[car [cons 1 [quote [2 3 4]]]])))
+      (is (= [nil [2 3 4]] (core/eval-expr nil '[cdr [cons 1 [quote [2 3 4]]]]))))
     (testing ">> def statements should return update environment"
       (is (= (core/eval-expr nil '[def x 4])
             '[[{x 4 }] x])))

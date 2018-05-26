@@ -112,17 +112,13 @@
                     [new-ctx sym])
                   (error-args params))
                 'cons
-                (let [params (map (partial eval-expr ctx) params)
-                      {:keys [head tail]}
-                      (conform (s/cat :head ::specs/form :tail ::specs/form) params)
-                      head (s/unform ::specs/form head)
-                      head (eval-expr ctx head)
-                      tail (s/unform ::specs/form tail)
-                      tail (map (partial eval-expr ctx) tail)]
-                  (cons head tail))
+                (if (= 2 (count params))
+                  (let [[ctx [head tail]] (eval-params ctx params)
+                        res (cons head tail)]
+                    [ctx res]))
                 'car
                 (if (= 1 (count params))
-                  (let [param (eval-expr ctx (first params))
+                  (let [[ctx param] (eval-expr ctx (first params))
                         [param-type param-content] (conform ::specs/form param)]
                     (case param-type
                       :list
@@ -130,12 +126,13 @@
                         (case list-type
                           :nil nil
                           :cons
-                          (let [{:keys [head tail]} list-content]
-                            (s/unform ::specs/form head))))))
+                          (let [{:keys [head tail]} list-content
+                                res (s/unform ::specs/form head)]
+                            [ctx res])))))
                   (error-args params))
                 'cdr
                 (if (= 1 (count params))
-                  (let [param (eval-expr ctx (first params))
+                  (let [[ctx param] (eval-expr ctx (first params))
                         [param-type param-content] (conform ::specs/form param)]
                     (case param-type
                       :list
@@ -143,8 +140,9 @@
                         (case list-type
                           :nil nil
                           :cons
-                          (let [{:keys [head tail]} list-content]
-                            (map (partial s/unform ::specs/form) tail))))))
+                          (let [{:keys [head tail]} list-content
+                                res (map (partial s/unform ::specs/form) tail)]
+                            [ctx res])))))
                   (error-args params))
                 '+
                 (let [[ctx params] (eval-params ctx params)
