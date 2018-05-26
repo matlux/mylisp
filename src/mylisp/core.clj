@@ -117,7 +117,8 @@
                 (if (= 2 (count params))
                   (let [[ctx [head tail]] (eval-params ctx params)
                         res (cons head tail)]
-                    [ctx res]))
+                    [ctx res])
+                  (error-args params))
                 'car
                 (if (= 1 (count params))
                   (let [[ctx param] (eval-expr ctx (first params))
