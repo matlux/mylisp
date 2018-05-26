@@ -111,6 +111,41 @@
                         new-ctx (cons {sym val} new-ctx)]
                     [new-ctx sym])
                   (error-args params))
+                'cons
+                (let [params (map (partial eval-expr ctx) params)
+                      {:keys [head tail]}
+                      (conform (s/cat :head ::specs/form :tail ::specs/form) params)
+                      head (s/unform ::specs/form head)
+                      head (eval-expr ctx head)
+                      tail (s/unform ::specs/form tail)
+                      tail (map (partial eval-expr ctx) tail)]
+                  (cons head tail))
+                'car
+                (if (= 1 (count params))
+                  (let [param (eval-expr ctx (first params))
+                        [param-type param-content] (conform ::specs/form param)]
+                    (case param-type
+                      :list
+                      (let [[list-type list-content] param-content]
+                        (case list-type
+                          :nil nil
+                          :cons
+                          (let [{:keys [head tail]} list-content]
+                            (s/unform ::specs/form head))))))
+                  (error-args params))
+                'cdr
+                (if (= 1 (count params))
+                  (let [param (eval-expr ctx (first params))
+                        [param-type param-content] (conform ::specs/form param)]
+                    (case param-type
+                      :list
+                      (let [[list-type list-content] param-content]
+                        (case list-type
+                          :nil nil
+                          :cons
+                          (let [{:keys [head tail]} list-content]
+                            (map (partial s/unform ::specs/form) tail))))))
+                  (error-args params))
                 '+
                 (let [[ctx params] (eval-params ctx params)
                       res (clojure.core/apply + params)]
@@ -137,45 +172,6 @@
                           [result-ctx res] (eval-expr closure-ctx form)]
                       [ctx res]))
                   (error-args params))))))))))
-
-(comment
-  ;; necessary special forms
-  ;; somehow causes errors with #dbg
-  cons
-  (let [params (map (partial eval-expr ctx) params)
-        {:keys [head tail]}
-        (conform (s/cat :head ::specs/form :tail ::specs/form) params)
-        head (s/unform ::specs/form head)
-        head (eval-expr ctx head)
-        tail (s/unform ::specs/form tail)
-        tail (map (partial eval-expr ctx) tail)]
-    (cons head tail))
-  car
-  (if (= 1 (count params))
-    (let [param (eval-expr ctx (first params))
-          [param-type param-content] (conform ::specs/form param)]
-      (case param-type
-        :list
-        (let [[list-type list-content] param-content]
-          (case list-type
-            :nil nil
-            :cons
-            (let [{:keys [head tail]} list-content]
-              (s/unform ::specs/form head))))))
-    (error-args params))
-  cdr
-  (if (= 1 (count params))
-    (let [param (eval-expr ctx (first params))
-          [param-type param-content] (conform ::specs/form param)]
-      (case param-type
-        :list
-        (let [[list-type list-content] param-content]
-          (case list-type
-            :nil nil
-            :cons
-            (let [{:keys [head tail]} list-content]
-              (map (partial s/unform ::specs/form) tail))))))
-    (error-args params)))
 
 (defn -main [& args]
   (println "REPL is ready! Type an expression to be evaluated:")
