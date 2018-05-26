@@ -90,7 +90,7 @@
                 'macro
                 (let [[ctx macro-expr] (eval-expr ctx (cons 'lambda params))
                       macro-expr (assoc macro-expr ::specs/macro? true)]
-                  (eval-expr ctx macro-expr))
+                  [ctx macro-expr])
                 'do
                 (reduce
                   (fn [[ctx res] param] (eval-expr ctx param))
@@ -163,18 +163,20 @@
                 (if (= (count arglist) (count params))
                   (if macro?
                     (let [arg-ctx (zipmap arglist params)
-                          ctx (cons arg-ctx bindings)]
-                      (eval-expr ctx form))
+                          arg-ctx (cons arg-ctx bindings)
+                          [res-ctx res] (eval-expr arg-ctx form)]
+                      (eval-expr ctx res))
                     (let [[ctx params] (eval-params ctx params)
                           arg-ctx (zipmap arglist params)
-                          closure-ctx (cons arg-ctx bindings)
-                          [result-ctx res] (eval-expr closure-ctx form)]
+                          arg-ctx (cons arg-ctx bindings)
+                          [result-ctx res] (eval-expr arg-ctx form)]
                       [ctx res]))
                   (error-args params))))))))))
 
 (defn -main [& args]
   (println "REPL is ready! Type an expression to be evaluated:")
-  (loop [ctx nil line (read-line)]
+  (loop [[ctx res] (eval-expr nil (cons 'do init-forms))
+         line (read-line)]
     (if-let [expr (read-expr line)]
       (let [[ctx res] (eval-expr ctx expr)]
         (pprint res)
