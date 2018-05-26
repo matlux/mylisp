@@ -1,5 +1,6 @@
 (ns mylisp.core
   (:require
+   [clojure.string :as str]
    [clojure.spec.alpha :as s]
    [clojure.edn :as edn]
    [clojure.pprint :refer [pprint]]
@@ -173,12 +174,25 @@
                       [ctx res]))
                   (error-args params))))))))))
 
+(def init-forms
+  '[[def defun
+     [macro
+      [name arglist body]
+      [cons [quote def]
+       [cons name
+        [cons
+         [cons [quote lambda]
+          [cons arglist
+           [cons body nil]]]
+         nil]]]]]])
+
 (defn -main [& args]
-  (println "REPL is ready! Type an expression to be evaluated:")
-  (loop [[ctx res] (eval-expr nil (cons 'do init-forms))
-         line (read-line)]
-    (if-let [expr (read-expr line)]
-      (let [[ctx res] (eval-expr ctx expr)]
-        (pprint res)
-        (println "Type another expression:")
-        (recur ctx (read-line))))))
+  (let [[ctx res] (eval-expr nil (cons 'do init-forms))]
+    (println "REPL is ready! Type an expression to be evaluated:")
+    (loop [ctx ctx
+           line (read-line)]
+      (if-let [expr (read-expr line)]
+        (let [[ctx res] (eval-expr ctx expr)]
+          (pprint res)
+          (println "Type another expression:")
+          (recur ctx (read-line)))))))
