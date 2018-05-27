@@ -75,7 +75,6 @@
             (condp = head-type
               :symbol
               (condp = head-content
-                '. (println "THIS IS AN INTEROP STATEMENT!!!")
                 'quote
                 (if (= 1 (count params))
                   [ctx (first params)]
