@@ -146,13 +146,26 @@
                                 res (map (partial s/unform ::specs/form) tail)]
                             [ctx res])))))
                   (error-args params))
+                '=
+                (let [[ctx params] (eval-params ctx params)]
+                  (if (clojure.core/apply = params)
+                    [ctx true]
+                    [ctx false]))
                 '+
                 (let [[ctx params] (eval-params ctx params)
                       res (clojure.core/apply + params)]
                   [ctx res])
+                '-
+                (let [[ctx params] (eval-params ctx params)
+                      res (clojure.core/apply - params)]
+                  [ctx res])
                 '*
                 (let [[ctx params] (eval-params ctx params)
                       res (clojure.core/apply * params)]
+                  [ctx res])
+                '/
+                (let [[ctx params] (eval-params ctx params)
+                      res (clojure.core/apply / params)]
                   [ctx res]))
               :closure
               (let [{:keys
