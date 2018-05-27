@@ -31,8 +31,9 @@
       res (resolve-symbol (rest ctx) sym))
     (throw (ex-info (str "Unbound symbol: " (name sym)) {:symbol sym}))))
 
-(defn error-args [n]
-  (throw (ex-info (str "Wrong number of arguments (" n ")"))))
+(defn error-args [apply args]
+  (throw (ex-info (str "Wrong number of arguments (" (count args) ")")
+           {:apply apply :args args})))
 
 (declare eval-expr)
 
@@ -78,7 +79,7 @@
                 'quote
                 (if (= 1 (count params))
                   [ctx (first params)]
-                  (error-args params))
+                  (error-args "quote" params))
                 'lambda
                 (let [{:keys [arglist body]}
                       (conform ::specs/lambda-expr params)
@@ -96,28 +97,30 @@
                   (fn [[ctx res] param] (eval-expr ctx param))
                   [ctx nil] params)
                 'if
-                (let [{:keys [:check :then :else]}
-                      (conform ::specs/if-expr params)
-                      check-form (s/unform ::specs/form check)
-                      then-form (s/unform ::specs/form then)
-                      else-form (s/unform ::specs/form else)
-                      [ctx check-res] (eval-expr ctx check-form)]
-                  (if check-res
-                    (eval-expr ctx else-form)
-                    (eval-expr ctx then-form)))
+                (if (<= 2 (count params) 3)
+                  (let [{:keys [:check :then :else]}
+                        (conform ::specs/if-expr params)
+                        check-form (s/unform ::specs/form check)
+                        then-form (s/unform ::specs/form then)
+                        else-form (s/unform ::specs/form else)
+                        [ctx check-res] (eval-expr ctx check-form)]
+                    (if check-res
+                      (eval-expr ctx else-form)
+                      (eval-expr ctx then-form)))
+                  (error-args "if" params))
                 'def
                 (if (= 2 (count params))
                   (let [[sym expr] params
                         [new-ctx val] (eval-expr ctx expr)
                         new-ctx (cons {sym val} new-ctx)]
                     [new-ctx sym])
-                  (error-args params))
+                  (error-args "=" params))
                 'cons
                 (if (= 2 (count params))
                   (let [[ctx [head tail]] (eval-params ctx params)
                         res (cons head tail)]
                     [ctx res])
-                  (error-args params))
+                  (error-args "cons" params))
                 'car
                 (if (= 1 (count params))
                   (let [[ctx param] (eval-expr ctx (first params))
@@ -131,7 +134,7 @@
                           (let [{:keys [head tail]} list-content
                                 res (s/unform ::specs/form head)]
                             [ctx res])))))
-                  (error-args params))
+                  (error-args "car" params))
                 'cdr
                 (if (= 1 (count params))
                   (let [[ctx param] (eval-expr ctx (first params))
@@ -145,7 +148,7 @@
                           (let [{:keys [head tail]} list-content
                                 res (map (partial s/unform ::specs/form) tail)]
                             [ctx res])))))
-                  (error-args params))
+                  (error-args "cdr" params))
                 '=
                 (let [[ctx params] (eval-params ctx params)]
                   (if (clojure.core/apply = params)
@@ -185,7 +188,7 @@
                           arg-ctx (cons arg-ctx bindings)
                           [result-ctx res] (eval-expr arg-ctx form)]
                       [ctx res]))
-                  (error-args params))))))))))
+                  (error-args "closure" params))))))))))
 
 (def init-forms
   '[[def defun
