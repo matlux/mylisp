@@ -40,7 +40,11 @@
         (is (= (core/eval-expr ctx '[[lambda [x] [+ [* x x] y]] 5])
               [ctx 29])))
       (is (= (core/eval-expr nil '[[[lambda [y] [lambda [x] [+ [* x x] y]]] 4] 5])
-             [nil 29])))
+            [nil 29])))
+    (testing ">> lambda expressions with varargs is supported"
+      (is (= [nil [1 2 3 4 5]]
+            (core/eval-expr nil
+              '((lambda (head & tail) (cons head tail)) 1 2 3 4 (+ 2 3))))))
     (testing ">> quote stops evaluation of expression"
       (is (= [nil '[+ 1 2 3]] (core/eval-expr nil '[quote [+ 1 2 3]]))))
     (testing ">> List manipulation forms (cons, car, cdr) should be supported"

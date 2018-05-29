@@ -83,11 +83,19 @@
                 'lambda
                 (let [{:keys [arglist body]}
                       (conform ::specs/lambda-expr params)
-                      form (s/unform ::specs/form body)]
-                  [ctx
-                   {::specs/bindings ctx
-                    ::specs/arglist arglist
-                    ::specs/form form}])
+                      {:keys [required vararg]} arglist
+                      {vararg :symbol} vararg
+                      form (s/unform ::specs/form body)
+                      closure
+                      {::specs/bindings ctx
+                       ::specs/arglist required
+                       ::specs/form form}]
+                  (if vararg
+                    [ctx
+                     (assoc closure
+                       ::specs/vararg
+                       vararg)]
+                    [ctx closure]))
                 'macro
                 (let [[ctx macro-expr] (eval-expr ctx (cons 'lambda params))
                       macro-expr (assoc macro-expr ::specs/macro? true)]
@@ -174,17 +182,29 @@
               (let [{:keys
                      [::specs/bindings
                       ::specs/arglist
+                      ::specs/vararg
                       ::specs/form
                       ::specs/macro?]}
                     (s/unform ::specs/closure head-content)]
-                (if (= (count arglist) (count params))
+                (if (or (= (count arglist) (count params))
+                      (and vararg (< (count arglist) (count params))))
                   (if macro?
                     (let [arg-ctx (zipmap arglist params)
+                          arg-ctx
+                          (if vararg
+                            (assoc arg-ctx vararg
+                              (drop (count arglist) params))
+                            arg-ctx)
                           arg-ctx (cons arg-ctx bindings)
                           [res-ctx res] (eval-expr arg-ctx form)]
                       (eval-expr ctx res))
                     (let [[ctx params] (eval-params ctx params)
                           arg-ctx (zipmap arglist params)
+                          arg-ctx
+                          (if vararg
+                            (assoc arg-ctx vararg
+                              (drop (count arglist) params))
+                            arg-ctx)
                           arg-ctx (cons arg-ctx bindings)
                           [result-ctx res] (eval-expr arg-ctx form)]
                       [ctx res]))
