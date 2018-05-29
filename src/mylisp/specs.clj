@@ -41,8 +41,6 @@
     :arglist (s/spec (s/* ::symbol))
     :body ::form))
 
-(s/def ::macro-expr ::lambda-expr)
-
 (s/def ::if-expr
   (s/cat
     :check ::form
