@@ -41,6 +41,11 @@
               [ctx 29])))
       (is (= (core/eval-expr nil '[[[lambda [y] [lambda [x] [+ [* x x] y]]] 4] 5])
             [nil 29])))
+    (testing ">> if expressions work on arithmetics"
+      (is (= (core/eval-expr nil '(if (= 2 (- 4 2)) 42 666))
+            [nil 42]))
+      (is (= (core/eval-expr nil '(if (= (* (+ 2 4) (- 9 1)) (* 6 6)) 12 42))
+            [nil 42])))
     (testing ">> lambda expressions with varargs is supported"
       (is (= [nil [1 2 3 4 5]]
             (core/eval-expr nil

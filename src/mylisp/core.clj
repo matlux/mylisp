@@ -118,8 +118,8 @@
                         else-form (s/unform ::specs/form else)
                         [ctx check-res] (eval-expr ctx check-form)]
                     (if check-res
-                      (eval-expr ctx else-form)
-                      (eval-expr ctx then-form)))
+                      (eval-expr ctx then-form)
+                      (eval-expr ctx else-form)))
                   (error-args "if" params))
                 'def
                 (if (= 2 (count params))
