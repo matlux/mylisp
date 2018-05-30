@@ -1,0 +1,22 @@
+[
+
+ [def defun
+  [macro
+   [name arglist body]
+   [cons [quote def]
+    [cons name
+     [cons
+      [cons [quote lambda]
+       [cons arglist
+        [cons body nil]]]
+      nil]]]]]
+
+ [def let
+  [macro
+   [binding body]
+   [cons
+    [cons [quote lambda]
+     [cons [cons [car binding] nil]
+      [cons body nil]]]
+    [cons [car [cdr binding]] nil]]]]
+]

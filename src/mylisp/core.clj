@@ -1,10 +1,13 @@
 (ns mylisp.core
   (:require
+   [clojure.java.io :as jio]
    [clojure.string :as str]
    [clojure.spec.alpha :as s]
    [clojure.edn :as edn]
    [clojure.pprint :refer [pprint]]
    [mylisp.specs :as specs])
+  (:import
+   [java.io PushbackReader])
   (:gen-class))
 
 (s/fdef ::read-expr
@@ -215,38 +218,11 @@
                       [ctx res]))
                   (error-args "closure" params))))))))))
 
-(def init-forms
-  '[[def defun
-     [macro
-      [name arglist body]
-      [cons [quote def]
-       [cons name
-        [cons
-         [cons [quote lambda]
-          [cons arglist
-           [cons body nil]]]
-         nil]]]]]
-
-    [def cadr
-     [macro
-      [coll]
-      [cons [quote car]
-       [cons
-        [cons [quote cdr]
-         [cons coll nil]]
-        nil]]]]
-
-    [def let
-     [macro
-      [binding body]
-      [cons
-       [cons [quote lambda]
-        [cons [cons [car binding] nil]
-         [cons body nil]]]
-       [cons [cadr binding] nil]]]]])
-
 (defn -main [& args]
-  (let [[ctx res] (eval-expr nil (cons 'do init-forms))]
+  (let [rdr (PushbackReader. (jio/reader (jio/resource "init.edn")))
+        init-forms (edn/read rdr)
+       [ctx res] (eval-expr nil (cons 'do init-forms))]
+    (.close rdr)
     (println "REPL is ready! Type an expression to be evaluated:")
     (loop [ctx ctx
            line (read-line)]
