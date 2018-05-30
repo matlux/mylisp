@@ -36,7 +36,7 @@
     :list ::list))
 
 (s/def ::special-form
-  (set '[def quote lambda macro if do = + - * / cons car cdr]))
+  (set '[def quote lambda macro if do eval = + - * / cons car cdr]))
 
 (s/def ::vararg-separator #{'&})
 

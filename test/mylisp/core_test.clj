@@ -56,6 +56,8 @@
     (testing ">> def statements should return update environment"
       (is (= (core/eval-expr nil '[def x 4])
             '[[{x 4 }] x])))
+    (testing ">> eval uses eager evaluation"
+      (core/eval-expr nil '[eval [cons + [quote [1 2 3]]]]))
     ;; check unbound variable throws error
     (testing ">> referencing undefined variable throws exception"
       (is (thrown-with-msg? ExceptionInfo (unbound-sym y)
