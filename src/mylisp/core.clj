@@ -22,12 +22,6 @@
   :args (s/cat :ctx ::specs/bindings :form ::specs/form)
   :ret (s/cat :ctx ::specs/bindings :form ::specs/form))
 
-(defn read-expr [s]
-  (try
-    (edn/read-string s)
-    (catch Exception ex
-      (println (.getMessage ex)))))
-
 (defn resolve-symbol [ctx sym]
   (if (seq ctx)
     (if-let [res (get (first ctx) sym)]
@@ -218,6 +212,20 @@
                       [ctx res]))
                   (error-args "closure" params))))))))))
 
+(defn read-expr [s]
+  (try
+    (edn/read-string s)
+    (catch Exception ex
+      (println (.getMessage ex))
+      nil)))
+
+(defn try-eval-expr [ctx expr]
+  (try
+    (eval-expr ctx expr)
+    (catch Exception e
+      (println "ERROR:"(.getMessage e) (ex-data e))
+      [ctx nil])))
+
 (defn -main [& args]
   (let [rdr (PushbackReader. (jio/reader (jio/resource "init.edn")))
         init-forms (edn/read rdr)
@@ -227,7 +235,12 @@
     (loop [ctx ctx
            line (read-line)]
       (if-let [expr (read-expr line)]
-        (let [[ctx res] (eval-expr ctx expr)]
-          (pprint res)
+        (let [[new-ctx res] (try-eval-expr ctx expr)]
+          (println "=>" (pr-str res))
+          (println)
+          (println "Type another expression:")
+          (recur new-ctx (read-line)))
+        (do
+          (println)
           (println "Type another expression:")
           (recur ctx (read-line)))))))
