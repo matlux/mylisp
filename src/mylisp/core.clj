@@ -82,6 +82,12 @@
                   (let [[ctx [expr]] (eval-params ctx params)]
                     (eval-expr ctx expr))
                   (error-args "eval" params))
+                'apply
+                (if (= 2 (count params))
+                  (let [[ctx params] (eval-params ctx params)
+                        [f args] params]
+                    (eval-expr ctx (cons f args)))
+                  (error-args "apply" params))
                 'lambda
                 (let [{:keys [arglist body]}
                       (conform ::specs/lambda-expr params)
