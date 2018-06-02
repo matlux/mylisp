@@ -86,3 +86,22 @@
             (let [[inc-ctx inc-closure] (core/eval-expr nil '(lambda (x) (+ 1 x)))
                   expected-ctx (list {'inc inc-closure})]
               [expected-ctx 5]))))))
+
+(def recursion-forms
+  (quote
+    [[def Y
+      [lambda [f]
+       [[lambda [x] [f [x x]]]
+        [lambda [x] [f [lambda [& args] [apply [x x] args]]]]]]]
+
+     [def fact*
+      (lambda [recurse]
+        [lambda [n]
+         [if [= n 0] 1 [* n [recurse [- n 1]]]]])]
+
+     [def fact [Y fact*]]]))
+
+(deftest test-recursion
+  (let [[ctx _] (core/eval-expr nil (cons 'do recursion-forms))]
+    (is (= [ctx 1] (core/eval-expr ctx '(fact 0))))
+    (is (= [ctx 120] (core/eval-expr ctx '(fact 5))))))
