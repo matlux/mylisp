@@ -53,7 +53,7 @@
   (if-let [[form-type form-content] (conform ::specs/form form)]
     (condp = form-type
       :integer [ctx form-content]
-      :closure [ctx form-content]
+      :closure [ctx (s/unform ::specs/closure form-content)]
       :symbol
       (if (s/valid? ::specs/special-form form-content)
         [ctx form-content]
