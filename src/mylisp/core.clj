@@ -232,11 +232,15 @@
       (println "ERROR:"(.getMessage e) (ex-data e))
       [ctx nil])))
 
-(defn -main [& args]
-  (let [rdr (PushbackReader. (jio/reader (jio/resource "init.edn")))
-        init-forms (edn/read rdr)
-       [ctx res] (eval-expr nil (cons 'do init-forms))]
+(defn read-edn [filename]
+  (let [rdr (PushbackReader. (jio/reader (jio/resource filename)))
+        forms (edn/read rdr)]
     (.close rdr)
+    forms))
+
+(defn -main [& args]
+  (let [init-forms (read-edn "init.edn")
+       [ctx res] (eval-expr nil (cons 'do init-forms))]
     (println "REPL is ready! Type an expression to be evaluated:")
     (loop [ctx ctx
            line (read-line)]
