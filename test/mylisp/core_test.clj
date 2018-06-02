@@ -49,7 +49,9 @@
     (testing ">> lambda expressions with varargs is supported"
       (is (= [nil [1 2 3 4 5]]
             (core/eval-expr nil
-              '((lambda (head & tail) (cons head tail)) 1 2 3 4 (+ 2 3))))))
+              '((lambda (head & tail) (cons head tail)) 1 2 3 4 (+ 2 3)))))
+      (is (= [nil 6]
+            (core/eval-expr nil '((lambda (& args) (apply + args)) 1 2 3)))))
     (testing ">> quote stops evaluation of expression"
       (is (= [nil '[+ 1 2 3]] (core/eval-expr nil '[quote [+ 1 2 3]]))))
     (testing ">> List manipulation forms (cons, car, cdr) should be supported"
