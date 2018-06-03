@@ -141,15 +141,16 @@
                 (if (= 1 (count params))
                   (let [[ctx param] (eval-expr ctx (first params))
                         [param-type param-content] (conform ::specs/form param)]
-                    (case param-type
+                    (condp = param-type
                       :list
                       (let [[list-type list-content] param-content]
                         (case list-type
-                          :nil nil
+                          :nil [ctx nil]
                           :cons
                           (let [{:keys [head tail]} list-content
                                 res (s/unform ::specs/form head)]
-                            [ctx res])))))
+                            [ctx res])))
+                      [ctx nil]))
                   (error-args "car" params))
                 'cdr
                 (if (= 1 (count params))
@@ -158,12 +159,13 @@
                     (case param-type
                       :list
                       (let [[list-type list-content] param-content]
-                        (case list-type
-                          :nil nil
+                        (condp = list-type
+                          :nil [ctx nil]
                           :cons
                           (let [{:keys [head tail]} list-content
                                 res (map (partial s/unform ::specs/form) tail)]
-                            [ctx res])))))
+                            [ctx (seq res)])))
+                      [ctx nil]))
                   (error-args "cdr" params))
                 '=
                 (let [[ctx params] (eval-params ctx params)]

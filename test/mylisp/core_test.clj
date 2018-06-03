@@ -58,6 +58,12 @@
       (is (= [nil [1 2 3 4]] (core/eval-expr nil '[cons 1 [quote [2 3 4]]])))
       (is (= [nil 1] (core/eval-expr nil '[car [quote [1 2 3 4]]])))
       (is (= [nil [2 3 4]] (core/eval-expr nil '[cdr [quote [1 2 3 4]]])))
+      (is (= [nil nil] (core/eval-expr nil '[car 42])))
+      (is (= [nil nil] (core/eval-expr nil '[car nil])))
+      (is (= [nil 1] (core/eval-expr nil '[car [cons 1 nil]])))
+      (is (= [nil nil] (core/eval-expr nil '[cdr 42])))
+      (is (= [nil nil] (core/eval-expr nil '[cdr nil])))
+      (is (= [nil nil] (core/eval-expr nil '[cdr [cons 1 nil]])))
       (is (= [nil 1] (core/eval-expr nil '[car [cons 1 [quote [2 3 4]]]])))
       (is (= [nil [2 3 4]] (core/eval-expr nil '[cdr [cons 1 [quote [2 3 4]]]]))))
     (testing ">> def statements should return update environment"
