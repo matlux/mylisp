@@ -20,7 +20,16 @@ While in the REPL try executing the following expressions:
     (let (x (+ 2 3)) (square x))
     ;; => 25
 
-Enjoy!
+    (defun fact (n) (if (= n 0) 1 (* n (fact (- n 1)))))
+	;; => fact
+
+    (fact 0)
+	;; => 1
+
+    (fact 5)
+	;; => 120
+
+Recursion is supported via Y combinator, using the `defun` macro. Enjoy!
 
 ## License
 
