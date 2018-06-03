@@ -137,7 +137,7 @@
                         res (cons head tail)]
                     [ctx res])
                   (error-args "cons" params))
-                'car
+                'first
                 (if (= 1 (count params))
                   (let [[ctx param] (eval-expr ctx (first params))
                         [param-type param-content] (conform ::specs/form param)]
@@ -152,7 +152,7 @@
                             [ctx res])))
                       [ctx nil]))
                   (error-args "car" params))
-                'cdr
+                'rest
                 (if (= 1 (count params))
                   (let [[ctx param] (eval-expr ctx (first params))
                         [param-type param-content] (conform ::specs/form param)]
