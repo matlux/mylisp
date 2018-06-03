@@ -1,6 +1,6 @@
 # mylisp
 
-Lisp interpreter written in Clojure, to experiment with new `clojure.specs` features for evaluating and conforming S-exrpessions efficiently.
+Lisp interpreter written in Clojure, to experiment with new `clojure.specs` features for evaluating and conforming S-expressions efficiently.
 
 ## Usage
 
