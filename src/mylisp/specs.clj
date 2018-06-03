@@ -36,7 +36,7 @@
     :list ::list))
 
 (s/def ::special-form
-  (set '[def quote lambda macro if do eval apply = + - * / cons first rest]))
+  (set '[def quote lambda macro if do eval apply = + - * / cons list first rest]))
 
 (s/def ::vararg-separator #{'&})
 

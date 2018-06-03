@@ -137,6 +137,10 @@
                         res (cons head tail)]
                     [ctx res])
                   (error-args "cons" params))
+                'list
+                (let [[ctx [head & tail]] (eval-params ctx params)
+                      res (cons head tail)]
+                  [ctx res])
                 'first
                 (if (= 1 (count params))
                   (let [[ctx param] (eval-expr ctx (first params))
