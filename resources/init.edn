@@ -1,15 +1,17 @@
 [
+ [def Y
+  [lambda [f]
+   [[lambda [x] [f [x x]]]
+    [lambda [x] [f [lambda [& args] [apply [x x] args]]]]]]]
 
  [def defun
-  [macro
-   [name arglist body]
-   [cons [quote def]
-    [cons name
-     [cons
-      [cons [quote lambda]
-       [cons arglist
-        [cons body nil]]]
-      nil]]]]]
+  [macro [name arglist body]
+   [list [quote def] name
+    [list [quote Y]
+     [list [quote lambda]
+      [list name]
+      [list [quote lambda]
+       arglist body]]]]]]
 
  [def let
   [macro
