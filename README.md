@@ -1,6 +1,6 @@
 # mylisp
 
-Lisp interpreter written in Clojure, to experiment with new `clojure.specs` features for evaluating and conforming S-expressions efficiently.
+Lisp interpreter written in Clojure, to experiment with new `clojure.specs` features for conforming and destructuring S-expressions.
 
 ## Usage
 
@@ -35,5 +35,4 @@ Recursion is supported via Y combinator, using the `defun` macro. Enjoy!
 
 Copyright © 2014 Daniel Dinnyes
 
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Distributed under the Eclipse Public License either version 1.0 or any later version.
